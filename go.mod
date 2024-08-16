@@ -4,6 +4,7 @@ go 1.22.6
 
 require (
 	github.com/go-kratos/kratos/v2 v2.8.0
+	github.com/orzkratos/erkkratos v0.0.0
 	github.com/stretchr/testify v1.9.0
 	github.com/yyle88/done v1.0.5
 	github.com/yyle88/erero v1.0.8
