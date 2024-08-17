@@ -21,7 +21,10 @@ import (
 var caseDB *gorm.DB
 
 // 把错误转换为kratos错误的函数
-var caseErkFc = erkkratos.NewErkFc(errors_example.ErrorServerDbTransactionError, "erk")
+var caseErkFsc = erkkratos.NewErkFsc(errors_example.ErrorServerDbTransactionError, "erk")
+
+// 把错误转换为kratos错误的函数，这是另一种转换逻辑，把错误信息放在 metadata 里面
+var caseErkFmx = erkkratos.NewErkFmx(errors_example.ErrorServerDbTransactionError, "DB TRANSACTION ERROR")
 
 func TestMain(m *testing.M) {
 	db := done.VCE(gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
@@ -38,14 +41,15 @@ func TestMain(m *testing.M) {
 func TestTransaction(t *testing.T) {
 	erk := Transaction(context.Background(), caseDB, func(db *gorm.DB) *errors.Error {
 		return nil
-	}, caseErkFc)
+	}, caseErkFsc)
 	erkrequire.NoError(t, erk)
 }
 
 func TestTransaction_2(t *testing.T) {
 	erk := Transaction(context.Background(), caseDB, func(db *gorm.DB) *errors.Error {
 		return errors_example.ErrorServerDbError("erx=%s", erero.New("wrong"))
-	}, caseErkFc)
+	}, caseErkFsc)
+	t.Log(erk)
 	erkrequire.Error(t, erk)
 	//这个时候返回的错误就是函数里面的错误
 	require.True(t, errors_example.IsServerDbError(erk))
@@ -63,6 +67,39 @@ func TestTransaction_3(t *testing.T) {
 	}, func(erx error) *errors.Error {
 		return errors_example.ErrorServerDbTransactionError("erx=%s", erx)
 	})
+	t.Log(erk)
+	erkrequire.Error(t, erk)
+	//这个时候返回的错误就是事务出错
+	require.True(t, errors_example.IsServerDbTransactionError(erk))
+}
+
+func TestTransaction_4(t *testing.T) {
+	ctx := context.Background()
+	ctx, cancelFunc := context.WithTimeout(ctx, time.Millisecond*50)
+	defer cancelFunc()
+
+	erk := Transaction(ctx, caseDB, func(db *gorm.DB) *errors.Error {
+		time.Sleep(time.Millisecond * 100)
+		//其实这种不太严格但也符合函数本身不出错但报事务出错的情况
+		return nil
+	}, caseErkFsc)
+	t.Log(erk)
+	erkrequire.Error(t, erk)
+	//这个时候返回的错误就是事务出错
+	require.True(t, errors_example.IsServerDbTransactionError(erk))
+}
+
+func TestTransaction_5(t *testing.T) {
+	ctx := context.Background()
+	ctx, cancelFunc := context.WithTimeout(ctx, time.Millisecond*50)
+	defer cancelFunc()
+
+	erk := Transaction(ctx, caseDB, func(db *gorm.DB) *errors.Error {
+		time.Sleep(time.Millisecond * 100)
+		//其实这种不太严格但也符合函数本身不出错但报事务出错的情况
+		return nil
+	}, caseErkFmx)
+	t.Log(erk)
 	erkrequire.Error(t, erk)
 	//这个时候返回的错误就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
