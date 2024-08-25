@@ -4,10 +4,10 @@ go 1.22.6
 
 require (
 	github.com/go-kratos/kratos/v2 v2.8.0
-	github.com/orzkratos/erkkratos v0.0.3
+	github.com/orzkratos/erkkratos v0.0.5
 	github.com/stretchr/testify v1.9.0
-	github.com/yyle88/done v1.0.5
-	github.com/yyle88/erero v1.0.8
+	github.com/yyle88/done v1.0.7
+	github.com/yyle88/erero v1.0.9
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.11
 )
@@ -25,7 +25,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240823204242-4ba0660f739c // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
