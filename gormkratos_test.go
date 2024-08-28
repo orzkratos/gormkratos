@@ -21,10 +21,10 @@ import (
 var caseDB *gorm.DB
 
 // 把错误转换为kratos错误的函数
-var caseErkFsc = erkkratos.NewErkFsc(errors_example.ErrorServerDbTransactionError, "erk")
+var caseErkFsc = erkkratos.NewErkFsC(errors_example.ErrorServerDbTransactionError, "erk")
 
 // 把错误转换为kratos错误的函数，这是另一种转换逻辑，把错误信息放在 metadata 里面
-var caseErkFmx = erkkratos.NewErkFmx(errors_example.ErrorServerDbTransactionError, "DB TRANSACTION ERROR")
+var caseErkFmx = erkkratos.NewErkMtX(errors_example.ErrorServerDbTransactionError, "DB TRANSACTION ERROR")
 
 func TestMain(m *testing.M) {
 	db := done.VCE(gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
@@ -42,7 +42,7 @@ func TestTransaction(t *testing.T) {
 	erk := Transaction(context.Background(), caseDB, func(db *gorm.DB) *errors.Error {
 		return nil
 	}, caseErkFsc)
-	erkrequire.NoError(t, erk)
+	erkrequire.No(t, erk)
 }
 
 func TestTransaction_2(t *testing.T) {
@@ -50,7 +50,7 @@ func TestTransaction_2(t *testing.T) {
 		return errors_example.ErrorServerDbError("erx=%s", erero.New("wrong"))
 	}, caseErkFsc)
 	t.Log(erk)
-	erkrequire.Error(t, erk)
+	erkrequire.Eo(t, erk)
 	//这个时候返回的错误就是函数里面的错误
 	require.True(t, errors_example.IsServerDbError(erk))
 }
@@ -68,7 +68,7 @@ func TestTransaction_3(t *testing.T) {
 		return errors_example.ErrorServerDbTransactionError("erx=%s", erx)
 	})
 	t.Log(erk)
-	erkrequire.Error(t, erk)
+	erkrequire.Eo(t, erk)
 	//这个时候返回的错误就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
 }
@@ -84,7 +84,7 @@ func TestTransaction_4(t *testing.T) {
 		return nil
 	}, caseErkFsc)
 	t.Log(erk)
-	erkrequire.Error(t, erk)
+	erkrequire.Eo(t, erk)
 	//这个时候返回的错误就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
 }
@@ -100,7 +100,7 @@ func TestTransaction_5(t *testing.T) {
 		return nil
 	}, caseErkFmx)
 	t.Log(erk)
-	erkrequire.Error(t, erk)
+	erkrequire.Eo(t, erk)
 	//这个时候返回的错误就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
 }
