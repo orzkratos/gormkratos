@@ -6,7 +6,7 @@ require (
 	github.com/go-kratos/kratos/v2 v2.8.0
 	github.com/orzkratos/erkkratos v0.0.9
 	github.com/stretchr/testify v1.9.0
-	github.com/yyle88/done v1.0.8
+	github.com/yyle88/done v1.0.9
 	github.com/yyle88/erero v1.0.11
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.12

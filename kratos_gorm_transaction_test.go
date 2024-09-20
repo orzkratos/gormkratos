@@ -51,7 +51,7 @@ func TestTransaction_2(t *testing.T) {
 	}, caseErkFsc)
 	t.Log(erk)
 	erkrequire.Eo(t, erk)
-	//这个时候返回的错误就是函数里面的错误
+	//这个时候返回的错误，就是函数里面的错误
 	require.True(t, errors_example.IsServerDbError(erk))
 }
 
@@ -62,14 +62,14 @@ func TestTransaction_3(t *testing.T) {
 
 	erk := Transaction(ctx, caseDB, func(db *gorm.DB) *errors.Error {
 		time.Sleep(time.Millisecond * 100)
-		//其实这种不太严格但也符合函数本身不出错但报事务出错的情况
+		//其实这种不太严格，但也符合函数本身不出错，但报事务出错的情况
 		return nil
 	}, func(erx error) *errors.Error {
 		return errors_example.ErrorServerDbTransactionError("erx=%s", erx)
 	})
 	t.Log(erk)
 	erkrequire.Eo(t, erk)
-	//这个时候返回的错误就是事务出错
+	//这个时候返回的错误，就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
 }
 
@@ -80,12 +80,12 @@ func TestTransaction_4(t *testing.T) {
 
 	erk := Transaction(ctx, caseDB, func(db *gorm.DB) *errors.Error {
 		time.Sleep(time.Millisecond * 100)
-		//其实这种不太严格但也符合函数本身不出错但报事务出错的情况
+		//其实这种不太严格，但也符合函数本身不出错，但报事务出错的情况
 		return nil
 	}, caseErkFsc)
 	t.Log(erk)
 	erkrequire.Eo(t, erk)
-	//这个时候返回的错误就是事务出错
+	//这个时候返回的错误，就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
 }
 
@@ -96,11 +96,11 @@ func TestTransaction_5(t *testing.T) {
 
 	erk := Transaction(ctx, caseDB, func(db *gorm.DB) *errors.Error {
 		time.Sleep(time.Millisecond * 100)
-		//其实这种不太严格但也符合函数本身不出错但报事务出错的情况
+		//其实这种不太严格，但也符合函数本身不出错，但报事务出错的情况
 		return nil
 	}, caseErkFmx)
 	t.Log(erk)
 	erkrequire.Eo(t, erk)
-	//这个时候返回的错误就是事务出错
+	//这个时候返回的错误，就是事务出错
 	require.True(t, errors_example.IsServerDbTransactionError(erk))
 }

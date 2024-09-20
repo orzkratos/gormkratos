@@ -11,20 +11,20 @@ import (
 func Transaction(
 	ctx context.Context,
 	db *gorm.DB,
-	fc func(db *gorm.DB) *errors.Error,
-	newErkTx func(error) *errors.Error,
-	opts ...*sql.TxOptions,
+	run func(db *gorm.DB) *errors.Error,
+	efc func(error) *errors.Error,
+	ops ...*sql.TxOptions,
 ) (erk *errors.Error) {
-	if etx := db.WithContext(ctx).Transaction(func(db *gorm.DB) error {
-		if erk = fc(db); erk != nil {
+	if err := db.WithContext(ctx).Transaction(func(db *gorm.DB) error {
+		if erk = run(db); erk != nil {
 			return erk
 		}
 		return nil
-	}, opts...); etx != nil {
+	}, ops...); err != nil {
 		if erk != nil {
 			return erk
 		}
-		return newErkTx(etx)
+		return efc(err)
 	}
 	return nil
 }
