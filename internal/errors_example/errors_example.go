@@ -6,6 +6,18 @@ import (
 	"github.com/go-kratos/kratos/v2/errors"
 )
 
+func IsBadRequest(err error) bool {
+	if err == nil {
+		return false
+	}
+	e := errors.FromError(err)
+	return e.Reason == "BAD_REQUEST" && e.Code == 400
+}
+
+func ErrorBadRequest(format string, args ...interface{}) *errors.Error {
+	return errors.New(400, "BAD_REQUEST", fmt.Sprintf(format, args...))
+}
+
 func IsServerDbError(err error) bool {
 	if err == nil {
 		return false
