@@ -96,7 +96,7 @@ func TestTransaction_5(t *testing.T) {
 	erkrequire.NoError(t, erk)
 }
 
-func TestTransactionV2(t *testing.T) {
+func TestTransaction_6(t *testing.T) {
 	erk, err := gormkratos.Transaction(context.Background(), caseDB, func(db *gorm.DB) *errors.Error {
 		return nil
 	})
@@ -104,7 +104,7 @@ func TestTransactionV2(t *testing.T) {
 	erkrequire.NoError(t, erk) //当前面没有错误时，这里必然也没有错误
 }
 
-func TestTransactionV2_2(t *testing.T) {
+func TestTransaction_7(t *testing.T) {
 	erk, err := gormkratos.Transaction(context.Background(), caseDB, func(db *gorm.DB) *errors.Error {
 		return errors_example.ErrorBadRequest("erx=%s", erero.New("wrong"))
 	})
@@ -116,7 +116,7 @@ func TestTransactionV2_2(t *testing.T) {
 	require.True(t, errors_example.IsBadRequest(erk))
 }
 
-func TestTransactionV2_3(t *testing.T) {
+func TestTransaction_8(t *testing.T) {
 	ctx := context.Background()
 	ctx, cancelFunc := context.WithTimeout(ctx, time.Millisecond*50)
 	defer cancelFunc()

@@ -13,18 +13,19 @@ func Transaction(
 	ctx context.Context,
 	db *gorm.DB,
 	run func(db *gorm.DB) *errors.Error,
-	ops ...*sql.TxOptions,
+	options ...*sql.TxOptions,
 ) (erk *errors.Error, err error) {
-	if etx := db.WithContext(ctx).Transaction(func(db *gorm.DB) error {
+	warpFunc := func(db *gorm.DB) error {
 		if erk = run(db); erk != nil {
 			return erk
 		}
 		return nil
-	}, ops...); etx != nil {
+	}
+	if err = db.WithContext(ctx).Transaction(warpFunc, options...); err != nil {
 		if erk != nil {
-			return erk, etx
+			return erk, err
 		}
-		return nil, etx //因此首先判定是否有错误的，其次判定是否有kratos的错误
+		return nil, err //因此首先判定是否有错误的，其次判定是否有kratos的错误
 	}
 	return nil, nil
 }
