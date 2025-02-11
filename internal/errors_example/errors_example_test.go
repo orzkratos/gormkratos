@@ -9,10 +9,10 @@ import (
 
 func TestErrorServerDbError(t *testing.T) {
 	erk := ErrorServerDbError("error=%v", erero.New("abc"))
-	erkrequire.Eo(t, erk)
+	erkrequire.Error(t, erk)
 }
 
 func TestErrorServerDbTransactionError(t *testing.T) {
 	erk := ErrorServerDbTransactionError("error=%v", erero.New("abc"))
-	erkrequire.Eo(t, erk)
+	erkrequire.Error(t, erk)
 }

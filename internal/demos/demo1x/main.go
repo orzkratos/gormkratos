@@ -28,7 +28,7 @@ func main() {
 }
 
 func someLogic(db *gorm.DB) *errors.Error {
-	if erk, err := gormkratos.TransactionV2(context.Background(), db, func(db *gorm.DB) *errors.Error {
+	if erk, err := gormkratos.Transaction(context.Background(), db, func(db *gorm.DB) *errors.Error {
 		return errors_example.ErrorBadRequest("wo le ge ca")
 	}); err != nil {
 		if erk != nil {
