@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/go-kratos/kratos/v2/errors"
+	"github.com/yyle88/erero"
 	"gorm.io/gorm"
 )
 
@@ -23,9 +24,9 @@ func Transaction(
 	}
 	if err = db.WithContext(ctx).Transaction(warpFunc, options...); err != nil {
 		if erk != nil {
-			return erk, err
+			return erk, erero.Wro(err)
 		}
-		return nil, err //因此首先判定是否有错误的，其次判定是否有kratos的错误
+		return nil, erero.Wro(err) //因此首先判定是否有错误的，其次判定是否有kratos的错误
 	}
 	return nil, nil
 }

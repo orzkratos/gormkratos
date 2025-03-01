@@ -4,11 +4,11 @@ go 1.22.8
 
 require (
 	github.com/go-kratos/kratos/v2 v2.8.3
-	github.com/orzkratos/erkkratos v0.0.12
+	github.com/orzkratos/erkkratos v0.0.13
 	github.com/stretchr/testify v1.10.0
-	github.com/yyle88/done v1.0.21
-	github.com/yyle88/erero v1.0.17
-	github.com/yyle88/zaplog v0.0.19
+	github.com/yyle88/done v1.0.22
+	github.com/yyle88/erero v1.0.18
+	github.com/yyle88/zaplog v0.0.20
 	go.uber.org/zap v1.27.0
 	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
@@ -25,7 +25,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.70.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect

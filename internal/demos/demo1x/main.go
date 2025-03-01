@@ -22,12 +22,12 @@ func main() {
 		done.Done(done.VCE(db.DB()).Nice().Close())
 	}()
 
-	if erk := someLogic(db); erk != nil {
+	if erk := runLogic(db); erk != nil {
 		zaplog.LOG.Info("wrong", zap.Error(erk))
 	}
 }
 
-func someLogic(db *gorm.DB) *errors.Error {
+func runLogic(db *gorm.DB) *errors.Error {
 	if erk, err := gormkratos.Transaction(context.Background(), db, func(db *gorm.DB) *errors.Error {
 		return errors_example.ErrorBadRequest("wo le ge ca")
 	}); err != nil {
