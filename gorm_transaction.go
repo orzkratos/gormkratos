@@ -16,13 +16,13 @@ func Transaction(
 	run func(db *gorm.DB) *errors.Error,
 	options ...*sql.TxOptions,
 ) (erk *errors.Error, err error) {
-	warpFunc := func(db *gorm.DB) error {
+	runFunc := func(db *gorm.DB) error {
 		if erk = run(db); erk != nil {
 			return erk
 		}
 		return nil
 	}
-	if err = db.WithContext(ctx).Transaction(warpFunc, options...); err != nil {
+	if err = db.WithContext(ctx).Transaction(runFunc, options...); err != nil {
 		if erk != nil {
 			return erk, erero.Wro(err)
 		}

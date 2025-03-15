@@ -15,26 +15,43 @@ import (
 )
 
 func main() {
-	db := done.VCE(gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
+	db := done.VCE(gorm.Open(sqlite.Open("file::memory:?cache=private"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})).Nice()
 	defer func() {
 		done.Done(done.VCE(db.DB()).Nice().Close())
 	}()
 
-	if erk := runLogic(db); erk != nil {
-		zaplog.LOG.Info("wrong", zap.Error(erk))
+	ctx := context.Background()
+	if erk := runLogic(ctx, db); erk != nil {
+		zaplog.LOG.Error("wrong", zap.Error(erk))
+		return
 	}
+	zaplog.LOG.Info("success")
 }
 
-func runLogic(db *gorm.DB) *errors.Error {
-	if erk, err := gormkratos.Transaction(context.Background(), db, func(db *gorm.DB) *errors.Error {
+func runLogic(ctx context.Context, db *gorm.DB) *errors.Error {
+	if erk := Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+		return nil
+	}); erk != nil {
+		zaplog.LOG.Error("wrong", zap.Error(erk))
+		return erk
+	}
+
+	if erk := Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 		return errors_example.ErrorBadRequest("wo le ge ca")
-	}); err != nil {
+	}); erk != nil {
+		zaplog.LOG.Error("wrong", zap.Error(erk))
+		return erk
+	}
+	return nil
+}
+
+func Transaction(ctx context.Context, db *gorm.DB, run func(db *gorm.DB) *errors.Error) *errors.Error {
+	if erk, err := gormkratos.Transaction(ctx, db, run); err != nil {
 		if erk != nil {
-			return erk //说明是业务问题，继续报业务的错误信息
+			return erk
 		}
-		//否则说明是DB的TX提交错误
 		return errors_example.ErrorServerDbTransactionError("error=%v", err)
 	}
 	return nil

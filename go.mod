@@ -3,11 +3,11 @@ module github.com/orzkratos/gormkratos
 go 1.22.8
 
 require (
-	github.com/go-kratos/kratos/v2 v2.8.3
-	github.com/orzkratos/erkkratos v0.0.13
+	github.com/go-kratos/kratos/v2 v2.8.4
+	github.com/orzkratos/errkratos v0.0.15
 	github.com/stretchr/testify v1.10.0
 	github.com/yyle88/done v1.0.22
-	github.com/yyle88/erero v1.0.18
+	github.com/yyle88/erero v1.0.19
 	github.com/yyle88/zaplog v0.0.20
 	go.uber.org/zap v1.27.0
 	gorm.io/driver/sqlite v1.5.7

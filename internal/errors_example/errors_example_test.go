@@ -3,7 +3,7 @@ package errors_example
 import (
 	"testing"
 
-	"github.com/orzkratos/erkkratos/erkrequire"
+	"github.com/orzkratos/errkratos/erkrequire"
 	"github.com/yyle88/erero"
 )
 
