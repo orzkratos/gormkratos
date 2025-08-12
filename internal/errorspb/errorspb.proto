@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package internal.errorspb;
+
+import "errors/errors.proto";
+
+option go_package = "github.com/orzkratos/gormkratos/internal/errorspb;errorspb";
+
+enum ErrorReason {
+  option (errors.default_code) = 500;
+
+  UNKNOWN = 0 [(errors.code) = 500]; // 内部异常，内部崩溃是 UNKNOWN 500，这里默认值也定义为 UNKNOWN 500，认为这是最佳策略
+
+  BAD_REQUEST = 40000 [(errors.code) = 400];
+
+  SERVER_DB_ERROR = 50001 [(errors.code) = 500];
+  SERVER_DB_TRANSACTION_ERROR = 50002 [(errors.code) = 500];
+}

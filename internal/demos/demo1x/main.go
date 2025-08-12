@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/orzkratos/gormkratos"
-	"github.com/orzkratos/gormkratos/internal/errors_example"
+	"github.com/orzkratos/gormkratos/internal/errorspb"
 	"github.com/yyle88/done"
 	"github.com/yyle88/zaplog"
 	"go.uber.org/zap"
@@ -39,7 +39,7 @@ func runLogic(ctx context.Context, db *gorm.DB) *errors.Error {
 	}
 
 	if erk := Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-		return errors_example.ErrorBadRequest("wo le ge ca")
+		return errorspb.ErrorBadRequest("wo le ge ca")
 	}); erk != nil {
 		zaplog.LOG.Error("wrong", zap.Error(erk))
 		return erk
@@ -52,7 +52,7 @@ func Transaction(ctx context.Context, db *gorm.DB, run func(db *gorm.DB) *errors
 		if erk != nil {
 			return erk
 		}
-		return errors_example.ErrorServerDbTransactionError("error=%v", err)
+		return errorspb.ErrorServerDbTransactionError("error=%v", err)
 	}
 	return nil
 }
