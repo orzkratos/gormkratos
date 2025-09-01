@@ -6,5 +6,5 @@ errors:
 	protoc --proto_path=./errorspb \
 		   --proto_path=./proto3ps \
 		   --go_out=paths=source_relative:./errorspb \
-		   --go-errors_out=paths=source_relative:./errorspb \
+		   --orzkratos-errors_out=paths=source_relative:./errorspb \
 		   $(ERROR_PROTO_FILES)
