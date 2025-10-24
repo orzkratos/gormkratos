@@ -1,8 +1,8 @@
-// demo1x: Basic transaction with success case
-// Demonstrates the simplest usage of gormkratos.Transaction
+// demo2x: Transaction rollback on business logic errors
+// Demonstrates auto rollback when business logic returns errors
 //
-// demo1x: 基础事务成功案例
-// 演示 gormkratos.Transaction 的最简单用法
+// demo2x: 业务逻辑错误时事务回滚
+// 演示业务逻辑返回错误时的自动回滚
 package main
 
 import (
@@ -21,11 +21,11 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Admin represents admin data in the system
-// Admin 表示系统中的管理员数据
-type Admin struct {
+// Guest represents guest data in the system
+// Guest 表示系统中的访客数据
+type Guest struct {
 	ID   uint   `gorm:"primarykey"` // Auto-increment ID // 自增主键
-	Name string `gorm:"not null"`   // Admin name, must set // 管理员名称,必填
+	Name string `gorm:"not null"`   // Guest name, must set // 访客名称,必填
 }
 
 func main() {
@@ -35,27 +35,35 @@ func main() {
 	}))
 	defer rese.F0(rese.P1(db.DB()).Close)
 
-	must.Done(db.AutoMigrate(&Admin{}))
+	must.Done(db.AutoMigrate(&Guest{}))
 
 	ctx := context.Background()
 
 	erk := Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-		admin := &Admin{Name: "Alice"}
-		if err := db.Create(admin).Error; err != nil {
+		guest := &Guest{Name: "Bob"}
+		if err := db.Create(guest).Error; err != nil {
 			return ErrorServerDbError("create failed: %v", err)
 		}
-		zaplog.LOG.Debug("Created admin", zap.Uint("id", admin.ID), zap.String("name", admin.Name))
-		return nil
+		zaplog.LOG.Debug("Created guest (then rollback)", zap.Uint("id", guest.ID), zap.String("name", guest.Name))
+		return ErrorBadRequest("validation failed")
 	})
-	if erk != nil {
-		zaplog.LOG.Error("Error", zap.Error(erk))
-	}
+	zaplog.LOG.Error("Error", zap.Error(erk))
+
+	var count int64
+	db.Model(&Guest{}).Count(&count)
+	zaplog.LOG.Debug("Guest count post rollback", zap.Int64("count", count))
 }
 
 // ErrorServerDbError creates Kratos database operation errors
 // ErrorServerDbError 创建 Kratos 数据库操作错误
 func ErrorServerDbError(format string, args ...interface{}) *errors.Error {
 	return errors.New(500, "DB_ERROR", fmt.Sprintf(format, args...))
+}
+
+// ErrorBadRequest creates Kratos client request errors
+// ErrorBadRequest 创建 Kratos 客户端请求错误
+func ErrorBadRequest(format string, args ...interface{}) *errors.Error {
+	return errors.New(400, "BAD_REQUEST", fmt.Sprintf(format, args...))
 }
 
 // ErrorServerDbTransactionError creates Kratos transaction-level errors

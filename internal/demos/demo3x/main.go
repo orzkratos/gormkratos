@@ -1,8 +1,8 @@
-// demo1x: Basic transaction with success case
-// Demonstrates the simplest usage of gormkratos.Transaction
+// demo3x: Create and update operations in single transaction
+// Demonstrates combining multiple database operations within one atomic transaction
 //
-// demo1x: 基础事务成功案例
-// 演示 gormkratos.Transaction 的最简单用法
+// demo3x: 单个事务中的创建和更新操作
+// 演示在一个原子事务中组合多个数据库操作
 package main
 
 import (
@@ -21,11 +21,12 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Admin represents admin data in the system
-// Admin 表示系统中的管理员数据
-type Admin struct {
-	ID   uint   `gorm:"primarykey"` // Auto-increment ID // 自增主键
-	Name string `gorm:"not null"`   // Admin name, must set // 管理员名称,必填
+// Product represents product data in the system
+// Product 表示系统中的产品数据
+type Product struct {
+	ID    uint   `gorm:"primarykey"` // Auto-increment ID // 自增主键
+	Name  string `gorm:"not null"`   // Product name, must set // 产品名称,必填
+	Price int    // Product price in cents // 产品价格(分)
 }
 
 func main() {
@@ -35,16 +36,22 @@ func main() {
 	}))
 	defer rese.F0(rese.P1(db.DB()).Close)
 
-	must.Done(db.AutoMigrate(&Admin{}))
+	must.Done(db.AutoMigrate(&Product{}))
 
 	ctx := context.Background()
 
 	erk := Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-		admin := &Admin{Name: "Alice"}
-		if err := db.Create(admin).Error; err != nil {
+		product := &Product{Name: "Laptop", Price: 5000}
+		if err := db.Create(product).Error; err != nil {
 			return ErrorServerDbError("create failed: %v", err)
 		}
-		zaplog.LOG.Debug("Created admin", zap.Uint("id", admin.ID), zap.String("name", admin.Name))
+		zaplog.LOG.Debug("Created product", zap.Uint("id", product.ID), zap.String("name", product.Name), zap.Int("price", product.Price))
+
+		product.Price = 4500
+		if err := db.Updates(product).Error; err != nil {
+			return ErrorServerDbError("update failed: %v", err)
+		}
+		zaplog.LOG.Debug("Updated product", zap.Uint("id", product.ID), zap.String("name", product.Name), zap.Int("price", product.Price))
 		return nil
 	})
 	if erk != nil {
