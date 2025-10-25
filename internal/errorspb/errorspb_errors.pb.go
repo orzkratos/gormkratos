@@ -4,7 +4,7 @@ package errorspb
 
 import (
 	errors "github.com/go-kratos/kratos/v2/errors"
-	errgenkratos "github.com/orzkratos/errgenkratos"
+	newerk "github.com/orzkratos/errkratos/newerk"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -13,31 +13,31 @@ const _ = errors.SupportPackageIsVersion1
 
 // 内部异常，内部崩溃是 UNKNOWN 500，这里默认值也定义为 UNKNOWN 500，认为这是最佳策略
 func IsUnknown(err error) bool {
-	return errgenkratos.IsError(err, ErrorReason_UNKNOWN, 500)
+	return newerk.IsError(err, ErrorReason_UNKNOWN, 500)
 }
 
 // 内部异常，内部崩溃是 UNKNOWN 500，这里默认值也定义为 UNKNOWN 500，认为这是最佳策略
 func ErrorUnknown(format string, args ...interface{}) *errors.Error {
-	return errgenkratos.NewError(500, ErrorReason_UNKNOWN, format, args...)
+	return newerk.NewError(500, ErrorReason_UNKNOWN, format, args...)
 }
 func IsBadRequest(err error) bool {
-	return errgenkratos.IsError(err, ErrorReason_BAD_REQUEST, 400)
+	return newerk.IsError(err, ErrorReason_BAD_REQUEST, 400)
 }
 
 func ErrorBadRequest(format string, args ...interface{}) *errors.Error {
-	return errgenkratos.NewError(400, ErrorReason_BAD_REQUEST, format, args...)
+	return newerk.NewError(400, ErrorReason_BAD_REQUEST, format, args...)
 }
 func IsServerDbError(err error) bool {
-	return errgenkratos.IsError(err, ErrorReason_SERVER_DB_ERROR, 500)
+	return newerk.IsError(err, ErrorReason_SERVER_DB_ERROR, 500)
 }
 
 func ErrorServerDbError(format string, args ...interface{}) *errors.Error {
-	return errgenkratos.NewError(500, ErrorReason_SERVER_DB_ERROR, format, args...)
+	return newerk.NewError(500, ErrorReason_SERVER_DB_ERROR, format, args...)
 }
 func IsServerDbTransactionError(err error) bool {
-	return errgenkratos.IsError(err, ErrorReason_SERVER_DB_TRANSACTION_ERROR, 500)
+	return newerk.IsError(err, ErrorReason_SERVER_DB_TRANSACTION_ERROR, 500)
 }
 
 func ErrorServerDbTransactionError(format string, args ...interface{}) *errors.Error {
-	return errgenkratos.NewError(500, ErrorReason_SERVER_DB_TRANSACTION_ERROR, format, args...)
+	return newerk.NewError(500, ErrorReason_SERVER_DB_TRANSACTION_ERROR, format, args...)
 }

@@ -28,7 +28,7 @@ Kratos 框架的 GORM 事务封装,具备双错误返回模式。
 ## 安装
 
 ```bash
-go install github.com/orzkratos/gormkratos@latest
+go get github.com/orzkratos/gormkratos
 ```
 
 ## 使用方法

@@ -5,8 +5,7 @@ go 1.25.0
 require (
 	github.com/go-kratos/kratos/v2 v2.9.1
 	github.com/google/uuid v1.6.0
-	github.com/orzkratos/errgenkratos v0.0.5
-	github.com/orzkratos/errkratos v0.0.30
+	github.com/orzkratos/errkratos v0.0.31
 	github.com/stretchr/testify v1.11.1
 	github.com/yyle88/erero v1.0.24
 	github.com/yyle88/must v0.0.26

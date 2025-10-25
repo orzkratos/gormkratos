@@ -28,7 +28,7 @@ GORM transaction wrap to Kratos framework with two-error-return pattern.
 ## Install
 
 ```bash
-go install github.com/orzkratos/gormkratos@latest
+go get github.com/orzkratos/gormkratos
 ```
 
 ## Usage
