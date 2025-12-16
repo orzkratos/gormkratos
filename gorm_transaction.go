@@ -19,6 +19,10 @@ import (
 // - erk: Business logic errors (Kratos errors)
 // - err: Database transaction errors
 //
+// IMPORTANT:
+// Unlike common (res, err) pattern where res is invalid when err != nil,
+// Here erk often contains valid business data when err != nil. You MUST check erk first!
+//
 // Error combinations:
 // When err != nil:
 // - erk != nil: Business logic error caused rollback
@@ -26,10 +30,24 @@ import (
 // When err == nil:
 // - (erk must also be nil) Both succeeded
 //
+// Recommended usage pattern (MUST follow this pattern):
+//
+//	erk, err := gormkratos.Transaction(ctx, db, run)
+//	if err != nil {
+//	    if erk != nil {
+//	        return erk
+//	    }
+//	    return YourTransactionError("transaction failed: %v", err)
+//	}
+//
 // Transaction 在数据库事务中执行函数
 // 返回两个错误以区分事务错误和业务逻辑错误:
 // - erk: 业务逻辑错误 (Kratos 错误)
 // - err: 数据库事务错误
+//
+// 重要:
+// 不同于常见的 (res, err) 模式中 err != nil 时 res 无效,
+// 这里当 err != nil 时 erk 往往包含有效业务数据. 必须先检查 erk!
 //
 // 错误组合:
 // 当 err != nil:
@@ -37,6 +55,16 @@ import (
 // - erk == nil: 数据库提交失败
 // 当 err == nil:
 // - (erk 也必然是 nil) 两者都成功
+//
+// 推荐用法 (必须遵循此模式):
+//
+//	erk, err := gormkratos.Transaction(ctx, db, run)
+//	if err != nil {
+//	    if erk != nil {
+//	        return erk
+//	    }
+//	    return YourTransactionError("transaction failed: %v", err)
+//	}
 func Transaction(
 	ctx context.Context,
 	db *gorm.DB,

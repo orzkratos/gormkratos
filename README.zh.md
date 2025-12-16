@@ -1,7 +1,7 @@
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/orzkratos/gormkratos/release.yml?branch=main&label=BUILD)](https://github.com/orzkratos/gormkratos/actions/workflows/release.yml?query=branch%3Amain)
 [![GoDoc](https://pkg.go.dev/badge/github.com/orzkratos/gormkratos)](https://pkg.go.dev/github.com/orzkratos/gormkratos)
 [![Coverage Status](https://img.shields.io/coveralls/github/orzkratos/gormkratos/main.svg)](https://coveralls.io/github/orzkratos/gormkratos?branch=main)
-[![Supported Go Versions](https://img.shields.io/badge/Go-1.25+-lightgrey.svg)](https://github.com/orzkratos/gormkratos)
+[![Supported Go Versions](https://img.shields.io/badge/Go-1.25+-lightgrey.svg)](https://go.dev/)
 [![GitHub Release](https://img.shields.io/github/release/orzkratos/gormkratos.svg)](https://github.com/orzkratos/gormkratos/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/orzkratos/gormkratos)](https://goreportcard.com/report/github.com/orzkratos/gormkratos)
 
@@ -12,9 +12,11 @@ Kratos 框架的 GORM 事务封装,具备双错误返回模式。
 ---
 
 <!-- TEMPLATE (ZH) BEGIN: LANGUAGE NAVIGATION -->
+
 ## 英文文档
 
 [ENGLISH README](README.md)
+
 <!-- TEMPLATE (ZH) END: LANGUAGE NAVIGATION -->
 
 ## 主要特性
@@ -275,13 +277,36 @@ func Transaction(ctx context.Context, db *gorm.DB, run func(db *gorm.DB) *errors
 1. **业务逻辑错误** (`erk *errors.Error`): 来自业务逻辑的 Kratos 框架错误
 2. **数据库事务错误** (`err error`): 数据库事务错误
 
+> **⚠️ 重要提示: 这打破了 Go 惯例!**
+>
+> 不同于常见的 `(res, err)` 模式中 `err != nil` 时 `res` 无效，这里当 `err != nil` 时 `erk` 往往包含有效的业务数据。你**必须**先检查 `erk`!
+
+### 推荐用法
+
+**始终使用此模式:**
+
+```go
+erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+    // 你的业务逻辑
+    return nil
+})
+if err != nil {
+    if erk != nil {
+        return erk
+    }
+    return YourTransactionError("transaction failed: %v", err)
+}
+```
+
 ### 场景
 
 **当 err != nil:**
-- `erk != nil`: 业务逻辑错误导致回滚
-- `erk == nil`: 数据库提交失败
+
+- `erk != nil`: 业务逻辑错误导致回滚 (使用 `erk`)
+- `erk == nil`: 数据库提交失败 (包装 `err`)
 
 **当 err == nil:**
+
 - `erk` 也是 nil，两者都成功
 
 ## 示例
@@ -289,6 +314,7 @@ func Transaction(ctx context.Context, db *gorm.DB, run func(db *gorm.DB) *errors
 ### 基础双错误返回
 
 **直接使用 gormkratos.Transaction:**
+
 ```go
 erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
     user := &User{Name: "test"}
@@ -300,6 +326,7 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ```
 
 **检查业务错误:**
+
 ```go
 if erk != nil {
     // 处理 Kratos 业务错误
@@ -308,6 +335,7 @@ if erk != nil {
 ```
 
 **检查数据库错误:**
+
 ```go
 if err != nil {
     // 处理数据库事务错误
@@ -318,6 +346,7 @@ if err != nil {
 ### 使用事务选项
 
 **设置事务隔离级别:**
+
 ```go
 import "database/sql"
 
@@ -333,6 +362,7 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ### 单个事务中的多个操作
 
 **组合创建和更新:**
+
 ```go
 erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
     product := &Product{Name: "Laptop", Price: 5000}
@@ -351,6 +381,7 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ### 上下文超时处理
 
 **超时时自动回滚:**
+
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 defer cancel()
@@ -364,23 +395,23 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ```
 
 <!-- TEMPLATE (ZH) BEGIN: STANDARD PROJECT FOOTER -->
-<!-- VERSION 2025-09-26 07:39:27.188023 +0000 UTC -->
+<!-- VERSION 2025-11-25 03:52:28.131064 +0000 UTC -->
 
 ## 📄 许可证类型
 
-MIT 许可证。详见 [LICENSE](LICENSE)。
+MIT 许可证 - 详见 [LICENSE](LICENSE)。
 
 ---
 
-## 🤝 项目贡献
+## 💬 联系与反馈
 
 非常欢迎贡献代码！报告 BUG、建议功能、贡献代码：
 
-- 🐛 **发现问题？** 在 GitHub 上提交问题并附上重现步骤
-- 💡 **功能建议？** 创建 issue 讨论您的想法
-- 📖 **文档疑惑？** 报告问题，帮助我们改进文档
+- 🐛 **问题报告？** 在 GitHub 上提交问题并附上重现步骤
+- 💡 **新颖思路？** 创建 issue 讨论
+- 📖 **文档疑惑？** 报告问题，帮助我们完善文档
 - 🚀 **需要功能？** 分享使用场景，帮助理解需求
-- ⚡ **性能瓶颈？** 报告慢操作，帮助我们优化性能
+- ⚡ **性能瓶颈？** 报告慢操作，协助解决性能问题
 - 🔧 **配置困扰？** 询问复杂设置的相关问题
 - 📢 **关注进展？** 关注仓库以获取新版本和功能
 - 🌟 **成功案例？** 分享这个包如何改善工作流程
@@ -398,7 +429,7 @@ MIT 许可证。详见 [LICENSE](LICENSE)。
 4. **分支**：创建功能分支（`git checkout -b feature/xxx`）
 5. **编码**：实现您的更改并编写全面的测试
 6. **测试**：（Golang 项目）确保测试通过（`go test ./...`）并遵循 Go 代码风格约定
-7. **文档**：为面向用户的更改更新文档，并使用有意义的提交消息
+7. **文档**：面向用户的更改需要更新文档
 8. **暂存**：暂存更改（`git add .`）
 9. **提交**：提交更改（`git commit -m "Add feature xxx"`）确保向后兼容的代码
 10. **推送**：推送到分支（`git push origin feature/xxx`）
@@ -410,7 +441,7 @@ MIT 许可证。详见 [LICENSE](LICENSE)。
 
 ## 🌟 项目支持
 
-非常欢迎通过提交 Merge Request 和报告问题来为此项目做出贡献。
+非常欢迎通过提交 Merge Request 和报告问题来贡献此项目。
 
 **项目支持：**
 

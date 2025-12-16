@@ -1,7 +1,7 @@
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/orzkratos/gormkratos/release.yml?branch=main&label=BUILD)](https://github.com/orzkratos/gormkratos/actions/workflows/release.yml?query=branch%3Amain)
 [![GoDoc](https://pkg.go.dev/badge/github.com/orzkratos/gormkratos)](https://pkg.go.dev/github.com/orzkratos/gormkratos)
 [![Coverage Status](https://img.shields.io/coveralls/github/orzkratos/gormkratos/main.svg)](https://coveralls.io/github/orzkratos/gormkratos?branch=main)
-[![Supported Go Versions](https://img.shields.io/badge/Go-1.25+-lightgrey.svg)](https://github.com/orzkratos/gormkratos)
+[![Supported Go Versions](https://img.shields.io/badge/Go-1.25+-lightgrey.svg)](https://go.dev/)
 [![GitHub Release](https://img.shields.io/github/release/orzkratos/gormkratos.svg)](https://github.com/orzkratos/gormkratos/releases)
 [![Go Report Card](https://goreportcard.com/badge/github.com/orzkratos/gormkratos)](https://goreportcard.com/report/github.com/orzkratos/gormkratos)
 
@@ -12,9 +12,11 @@ GORM transaction wrap to Kratos framework with two-error-return pattern.
 ---
 
 <!-- TEMPLATE (EN) BEGIN: LANGUAGE NAVIGATION -->
+
 ## CHINESE README
 
 [中文说明](README.zh.md)
+
 <!-- TEMPLATE (EN) END: LANGUAGE NAVIGATION -->
 
 ## Main Features
@@ -275,13 +277,36 @@ The `gormkratos.Transaction` function returns two errors to help distinguish bet
 1. **Business Logic Errors** (`erk *errors.Error`): Kratos framework errors from business logic
 2. **Database Transaction Errors** (`err error`): Database transaction errors
 
+> **⚠️ IMPORTANT: This breaks Go convention!**
+>
+> Unlike the common `(res, err)` pattern where `res` is invalid when `err != nil`, here `erk` often contains valid business data when `err != nil`. You **MUST** check `erk` first!
+
+### Recommended Usage Pattern
+
+**Always use this pattern:**
+
+```go
+erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+    // your business logic
+    return nil
+})
+if err != nil {
+    if erk != nil {
+        return erk
+    }
+    return YourTransactionError("transaction failed: %v", err)
+}
+```
+
 ### Scenarios
 
 **When err != nil:**
-- `erk != nil`: Business logic error caused rollback
-- `erk == nil`: Database commit failed
+
+- `erk != nil`: Business logic error caused rollback (use `erk`)
+- `erk == nil`: Database commit failed (wrap `err`)
 
 **When err == nil:**
+
 - `erk` also nil, both succeeded
 
 ## Examples
@@ -289,6 +314,7 @@ The `gormkratos.Transaction` function returns two errors to help distinguish bet
 ### Basic Two-Error Return
 
 **Direct use of gormkratos.Transaction:**
+
 ```go
 erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
     user := &User{Name: "test"}
@@ -300,6 +326,7 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ```
 
 **Check business errors:**
+
 ```go
 if erk != nil {
     // Handle Kratos business errors
@@ -308,6 +335,7 @@ if erk != nil {
 ```
 
 **Check database errors:**
+
 ```go
 if err != nil {
     // Handle database transaction errors
@@ -318,6 +346,7 @@ if err != nil {
 ### With Transaction Options
 
 **Set transaction isolation:**
+
 ```go
 import "database/sql"
 
@@ -333,6 +362,7 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ### Multiple Operations in One Transaction
 
 **Combine create and update:**
+
 ```go
 erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
     product := &Product{Name: "Laptop", Price: 5000}
@@ -351,6 +381,7 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ### Context Timeout Handling
 
 **Auto rollback on timeout:**
+
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 defer cancel()
@@ -364,20 +395,20 @@ erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
 ```
 
 <!-- TEMPLATE (EN) BEGIN: STANDARD PROJECT FOOTER -->
-<!-- VERSION 2025-09-26 07:39:27.188023 +0000 UTC -->
+<!-- VERSION 2025-11-25 03:52:28.131064 +0000 UTC -->
 
 ## 📄 License
 
-MIT License. See [LICENSE](LICENSE).
+MIT License - see [LICENSE](LICENSE).
 
 ---
 
-## 🤝 Contributing
+## 💬 Contact & Feedback
 
 Contributions are welcome! Report bugs, suggest features, and contribute code:
 
-- 🐛 **Found a mistake?** Open an issue on GitHub with reproduction steps
-- 💡 **Have a feature idea?** Create an issue to discuss the suggestion
+- 🐛 **Mistake reports?** Open an issue on GitHub with reproduction steps
+- 💡 **Fresh ideas?** Create an issue to discuss
 - 📖 **Documentation confusing?** Report it so we can improve
 - 🚀 **Need new features?** Share the use cases to help us understand requirements
 - ⚡ **Performance issue?** Help us optimize through reporting slow operations
@@ -398,7 +429,7 @@ New code contributions, follow this process:
 4. **Branch**: Create a feature branch (`git checkout -b feature/xxx`).
 5. **Code**: Implement the changes with comprehensive tests
 6. **Testing**: (Golang project) Ensure tests pass (`go test ./...`) and follow Go code style conventions
-7. **Documentation**: Update documentation to support client-facing changes and use significant commit messages
+7. **Documentation**: Update documentation to support client-facing changes
 8. **Stage**: Stage changes (`git add .`)
 9. **Commit**: Commit changes (`git commit -m "Add feature xxx"`) ensuring backward compatible code
 10. **Push**: Push to the branch (`git push origin feature/xxx`).

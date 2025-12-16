@@ -136,6 +136,110 @@ func TestTransactionRollback(t *testing.T) {
 	require.Equal(t, int64(0), count)
 }
 
+// TestTransactionNested tests nested transaction execution
+// TestTransactionNested 测试嵌套事务执行
+func TestTransactionNested(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Order represents test data
+	// Order 表示测试数据
+	type Order struct {
+		ID     uint   `gorm:"primarykey"`
+		Status string `gorm:"column:status;not null"`
+	}
+
+	require.NoError(t, db.AutoMigrate(&Order{}))
+
+	ctx := context.Background()
+
+	erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+		order := &Order{Status: "pending"}
+		if err := db.Create(order).Error; err != nil {
+			return errorspb.ErrorServerDbError("failed to create order: %v", err)
+		}
+
+		// Nested transaction
+		// 嵌套事务
+		erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+			order.Status = "confirmed"
+			if err := db.Save(order).Error; err != nil {
+				return errorspb.ErrorServerDbError("failed to update order: %v", err)
+			}
+			return nil
+		})
+		if err != nil {
+			if erk != nil {
+				return erk
+			}
+			return errorspb.ErrorServerDbError("nested transaction failed: %v", err)
+		}
+
+		return nil
+	})
+	require.NoError(t, err)
+	erkrequire.NoError(t, erk)
+
+	// Check data was inserted and updated
+	// 检查数据已插入并更新
+	var order Order
+	require.NoError(t, db.First(&order).Error)
+	require.Equal(t, "confirmed", order.Status)
+}
+
+// TestTransactionNestedRollback tests nested transaction rollback
+// TestTransactionNestedRollback 测试嵌套事务回滚
+func TestTransactionNestedRollback(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Item represents test data
+	// Item 表示测试数据
+	type Item struct {
+		ID    uint   `gorm:"primarykey"`
+		Name  string `gorm:"column:name;not null"`
+		Price int    `gorm:"column:price"`
+	}
+
+	require.NoError(t, db.AutoMigrate(&Item{}))
+
+	ctx := context.Background()
+
+	erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+		item := &Item{Name: "phone", Price: 1000}
+		if err := db.Create(item).Error; err != nil {
+			return errorspb.ErrorServerDbError("failed to create item: %v", err)
+		}
+
+		// Nested transaction with rollback
+		// 嵌套事务回滚
+		erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+			item.Price = 900
+			if err := db.Save(item).Error; err != nil {
+				return errorspb.ErrorServerDbError("failed to update item: %v", err)
+			}
+			// Simulate nested business errors
+			// 模拟嵌套业务错误
+			return errorspb.ErrorBadRequest("nested validation failed")
+		})
+		if err != nil {
+			if erk != nil {
+				return erk
+			}
+			return errorspb.ErrorServerDbError("nested transaction failed: %v", err)
+		}
+
+		return nil
+	})
+	require.Error(t, err)
+	erkrequire.Error(t, erk)
+	require.True(t, errorspb.IsBadRequest(erk))
+
+	// Check all data was rolled back
+	// 检查所有数据已回滚
+	var count int64
+	require.NoError(t, db.Model(&Item{}).Count(&count).Error)
+	require.Equal(t, int64(0), count)
+}
+
 // TestTransactionDifferentErrors tests different error type handling
 // TestTransactionDifferentErrors 测试不同错误类型处理
 func TestTransactionDifferentErrors(t *testing.T) {
