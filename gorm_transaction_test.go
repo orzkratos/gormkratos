@@ -1,12 +1,13 @@
-// Package gormkratos_test: Tests to gormkratos transaction wrap
-// Validates two-error-return pattern and transaction actions
+// Package gormkratos_test: Tests gormkratos transaction integration
+// Validates two-error-return pattern and transaction execution
 //
-// gormkratos_test: gormkratos 事务封装的测试
-// 验证双错误返回模式和事务行为
+// gormkratos_test: gormkratos 事务集成的测试
+// 验证双错误返回模式和事务执行
 package gormkratos_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// setupTestDB creates isolated in-mem SQLite database
+// setupTestDB creates isolated in-memory SQLite database
 // setupTestDB 创建独立的内存 SQLite 数据库
 func setupTestDB(t *testing.T) *gorm.DB {
 	dsn := fmt.Sprintf("file:db-%s?mode=memory&cache=shared", uuid.New().String())
@@ -46,7 +47,7 @@ func TestTransactionSuccess(t *testing.T) {
 	// Student represents simple test data
 	// Student 表示简单的测试数据
 	type Student struct {
-		ID   uint   `gorm:"primarykey"`           // Main ID // 主键
+		ID   uint   `gorm:"primarykey"`           // Auto-increment PK // 自增PK
 		Name string `gorm:"column:name;not null"` // Student name // 学生名称
 	}
 
@@ -71,7 +72,7 @@ func TestTransactionSuccess(t *testing.T) {
 	require.Equal(t, int64(1), count)
 }
 
-// TestTransactionBusinessError tests business logic error handling
+// TestTransactionBusinessError tests business logic errors handling
 // TestTransactionBusinessError 测试业务逻辑错误处理
 func TestTransactionBusinessError(t *testing.T) {
 	db := setupTestDB(t)
@@ -100,15 +101,15 @@ func TestTransactionTimeout(t *testing.T) {
 	erkrequire.NoError(t, erk)
 }
 
-// TestTransactionRollback tests transaction rollback behavior
-// TestTransactionRollback 测试事务回滚行为
+// TestTransactionRollback tests when transaction does rollback
+// TestTransactionRollback 测试事务回滚
 func TestTransactionRollback(t *testing.T) {
 	db := setupTestDB(t)
 
 	// Guest represents simple test data
 	// Guest 表示简单的测试数据
 	type Guest struct {
-		ID   uint   `gorm:"primarykey"`           // Main ID // 主键
+		ID   uint   `gorm:"primarykey"`           // Auto-increment PK // 自增PK
 		Name string `gorm:"column:name;not null"` // Guest name // 访客名称
 	}
 
@@ -141,29 +142,29 @@ func TestTransactionRollback(t *testing.T) {
 func TestTransactionNested(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Order represents test data
-	// Order 表示测试数据
-	type Order struct {
-		ID     uint   `gorm:"primarykey"`
-		Status string `gorm:"column:status;not null"`
+	// Invoice represents test data
+	// Invoice 表示测试数据
+	type Invoice struct {
+		ID     uint   `gorm:"primarykey"`             // Auto-increment PK // 自增PK
+		Status string `gorm:"column:status;not null"` // Status // 账单状态
 	}
 
-	require.NoError(t, db.AutoMigrate(&Order{}))
+	require.NoError(t, db.AutoMigrate(&Invoice{}))
 
 	ctx := context.Background()
 
 	erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-		order := &Order{Status: "pending"}
-		if err := db.Create(order).Error; err != nil {
-			return errorspb.ErrorServerDbError("failed to create order: %v", err)
+		invoice := &Invoice{Status: "pending"}
+		if err := db.Create(invoice).Error; err != nil {
+			return errorspb.ErrorServerDbError("failed to create invoice: %v", err)
 		}
 
 		// Nested transaction
 		// 嵌套事务
 		erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-			order.Status = "confirmed"
-			if err := db.Save(order).Error; err != nil {
-				return errorspb.ErrorServerDbError("failed to update order: %v", err)
+			invoice.Status = "confirmed"
+			if err := db.Save(invoice).Error; err != nil {
+				return errorspb.ErrorServerDbError("failed to update invoice: %v", err)
 			}
 			return nil
 		})
@@ -181,9 +182,9 @@ func TestTransactionNested(t *testing.T) {
 
 	// Check data was inserted and updated
 	// 检查数据已插入并更新
-	var order Order
-	require.NoError(t, db.First(&order).Error)
-	require.Equal(t, "confirmed", order.Status)
+	var invoice Invoice
+	require.NoError(t, db.First(&invoice).Error)
+	require.Equal(t, "confirmed", invoice.Status)
 }
 
 // TestTransactionNestedRollback tests nested transaction rollback
@@ -191,30 +192,30 @@ func TestTransactionNested(t *testing.T) {
 func TestTransactionNestedRollback(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Item represents test data
-	// Item 表示测试数据
-	type Item struct {
-		ID    uint   `gorm:"primarykey"`
-		Name  string `gorm:"column:name;not null"`
-		Price int    `gorm:"column:price"`
+	// Product represents test data
+	// Product 表示测试数据
+	type Product struct {
+		ID    uint   `gorm:"primarykey"`           // Auto-increment PK // 自增PK
+		Name  string `gorm:"column:name;not null"` // Name // 产品名称
+		Price int    `gorm:"column:price"`         // Price in cents // 产品价格(分)
 	}
 
-	require.NoError(t, db.AutoMigrate(&Item{}))
+	require.NoError(t, db.AutoMigrate(&Product{}))
 
 	ctx := context.Background()
 
 	erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-		item := &Item{Name: "phone", Price: 1000}
-		if err := db.Create(item).Error; err != nil {
-			return errorspb.ErrorServerDbError("failed to create item: %v", err)
+		product := &Product{Name: "phone", Price: 1000}
+		if err := db.Create(product).Error; err != nil {
+			return errorspb.ErrorServerDbError("failed to create product: %v", err)
 		}
 
 		// Nested transaction with rollback
 		// 嵌套事务回滚
 		erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
-			item.Price = 900
-			if err := db.Save(item).Error; err != nil {
-				return errorspb.ErrorServerDbError("failed to update item: %v", err)
+			product.Price = 900
+			if err := db.Save(product).Error; err != nil {
+				return errorspb.ErrorServerDbError("failed to update product: %v", err)
 			}
 			// Simulate nested business errors
 			// 模拟嵌套业务错误
@@ -236,12 +237,12 @@ func TestTransactionNestedRollback(t *testing.T) {
 	// Check all data was rolled back
 	// 检查所有数据已回滚
 	var count int64
-	require.NoError(t, db.Model(&Item{}).Count(&count).Error)
+	require.NoError(t, db.Model(&Product{}).Count(&count).Error)
 	require.Equal(t, int64(0), count)
 }
 
-// TestTransactionDifferentErrors tests different error type handling
-// TestTransactionDifferentErrors 测试不同错误类型处理
+// TestTransactionDifferentErrors tests handling different types of errors
+// TestTransactionDifferentErrors 测试不同类型错误的处理
 func TestTransactionDifferentErrors(t *testing.T) {
 	t.Run("BadRequest", func(t *testing.T) {
 		db := setupTestDB(t)
@@ -266,4 +267,44 @@ func TestTransactionDifferentErrors(t *testing.T) {
 		erkrequire.Error(t, erk)
 		require.True(t, errorspb.IsServerDbError(erk))
 	})
+}
+
+// TestTransactionWithTxOptions tests transaction with custom TxOptions
+// TestTransactionWithTxOptions 测试使用自定义 TxOptions 的事务
+func TestTransactionWithTxOptions(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Account represents test data
+	// Account 表示测试数据
+	type Account struct {
+		ID      uint `gorm:"primarykey"`     // Auto-increment PK // 自增PK
+		Balance int  `gorm:"column:balance"` // Balance in cents // 账户余额(分)
+	}
+
+	require.NoError(t, db.AutoMigrate(&Account{}))
+
+	ctx := context.Background()
+
+	// Test with ReadCommitted isolation
+	// 测试 ReadCommitted 隔离级别
+	txOptions := &sql.TxOptions{
+		Isolation: sql.LevelReadCommitted,
+		ReadOnly:  false,
+	}
+
+	erk, err := gormkratos.Transaction(ctx, db, func(db *gorm.DB) *errors.Error {
+		account := &Account{Balance: 10000}
+		if err := db.Create(account).Error; err != nil {
+			return errorspb.ErrorServerDbError("failed to create account: %v", err)
+		}
+		return nil
+	}, txOptions)
+	require.NoError(t, err)
+	erkrequire.NoError(t, erk)
+
+	// Check data was inserted
+	// 检查数据已插入
+	var count int64
+	require.NoError(t, db.Model(&Account{}).Count(&count).Error)
+	require.Equal(t, int64(1), count)
 }

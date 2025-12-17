@@ -7,7 +7,7 @@
 
 # gormkratos
 
-GORM transaction wrap to Kratos framework with two-error-return pattern.
+GORM transaction integration with Kratos, provides transaction functions with two-error-return pattern.
 
 ---
 
@@ -277,9 +277,10 @@ The `gormkratos.Transaction` function returns two errors to help distinguish bet
 1. **Business Logic Errors** (`erk *errors.Error`): Kratos framework errors from business logic
 2. **Database Transaction Errors** (`err error`): Database transaction errors
 
-> **⚠️ IMPORTANT: This breaks Go convention!**
+> **⚠️ IMPORTANT:**
 >
-> Unlike the common `(res, err)` pattern where `res` is invalid when `err != nil`, here `erk` often contains valid business data when `err != nil`. You **MUST** check `erk` first!
+> When `err != nil` and `erk != nil`, `erk` contains the specific business reason.
+> Return `erk` first since it has more business context (reason and code) than what the raw transaction throws.
 
 ### Recommended Usage Pattern
 

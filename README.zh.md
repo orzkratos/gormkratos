@@ -7,7 +7,7 @@
 
 # gormkratos
 
-Kratos 框架的 GORM 事务封装,具备双错误返回模式。
+GORM 事务与 Kratos 集成, 提供双错误返回模式的事务调用函数。
 
 ---
 
@@ -277,9 +277,10 @@ func Transaction(ctx context.Context, db *gorm.DB, run func(db *gorm.DB) *errors
 1. **业务逻辑错误** (`erk *errors.Error`): 来自业务逻辑的 Kratos 框架错误
 2. **数据库事务错误** (`err error`): 数据库事务错误
 
-> **⚠️ 重要提示: 这打破了 Go 惯例!**
+> **⚠️ 重要:**
 >
-> 不同于常见的 `(res, err)` 模式中 `err != nil` 时 `res` 无效，这里当 `err != nil` 时 `erk` 往往包含有效的业务数据。你**必须**先检查 `erk`!
+> 当 `err != nil` 且 `erk != nil` 时, `erk` 包含业务层的具体原因.
+> 需要优先返回 `erk`, 因为它比底层事务抛出的错误更有业务错误原因和错误码信息.
 
 ### 推荐用法
 

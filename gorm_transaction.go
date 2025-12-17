@@ -1,8 +1,8 @@
-// Package gormkratos: GORM transaction wrap to Kratos framework
+// Package gormkratos: GORM transaction integration with Kratos
 // Provides two-error-return pattern to distinguish business logic errors and database errors
 //
-// gormkratos: Kratos 框架的 GORM 事务封装
-// 提供双错误返回模式,区分业务逻辑错误和数据库错误
+// gormkratos: GORM 事务与 Kratos 集成
+// 提供双错误返回模式, 区分业务逻辑错误和数据库错误
 package gormkratos
 
 import (
@@ -20,8 +20,8 @@ import (
 // - err: Database transaction errors
 //
 // IMPORTANT:
-// Unlike common (res, err) pattern where res is invalid when err != nil,
-// Here erk often contains valid business data when err != nil. You MUST check erk first!
+// When err != nil and erk != nil, erk contains the specific business reason.
+// Return erk first since it has more business context (reason and code) than what the raw transaction throws.
 //
 // Error combinations:
 // When err != nil:
@@ -46,8 +46,8 @@ import (
 // - err: 数据库事务错误
 //
 // 重要:
-// 不同于常见的 (res, err) 模式中 err != nil 时 res 无效,
-// 这里当 err != nil 时 erk 往往包含有效业务数据. 必须先检查 erk!
+// 当 err != nil 且 erk != nil 时, erk 包含业务层的具体原因.
+// 需要优先返回 erk, 因为它比底层事务抛出的错误更有业务错误原因和错误码信息.
 //
 // 错误组合:
 // 当 err != nil:
@@ -80,12 +80,12 @@ func Transaction(
 		return nil
 	}, options...); err != nil {
 		if erk != nil {
-			// Business errors caused rollback, both errors back
-			// 业务错误导致回滚,返回两个错误
+			// Business error caused rollback, return both errors
+			// 业务错误导致回滚, 返回两个错误
 			return erk, erero.Wro(err)
 		}
-		// Database errors, wrap and back
-		// 数据库错误,包装后返回
+		// Database error, wrap and return
+		// 数据库错误, 包装后返回
 		return nil, erero.Wro(err)
 	}
 
